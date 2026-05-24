@@ -9,16 +9,11 @@ type Status = "working" | "broken" | "unknown";
 
 type StatusResponse = {
   status: Status;
-  workingCount: number;
-  brokenCount: number;
-  totalCount: number;
   lastReportedAt: string | null;
 };
 
-type StatusRow = {
-  workingCount: number | null;
-  brokenCount: number | null;
-  totalCount: number | null;
+type LatestStatusRow = {
+  status: "working" | "broken";
   lastReportedAt: string | null;
 };
 
@@ -62,32 +57,15 @@ export default app;
 async function getCurrentStatus(db: D1Database): Promise<StatusResponse> {
   const row = await db
     .prepare(
-      `SELECT
-        COALESCE(SUM(CASE WHEN status = 'working' THEN 1 ELSE 0 END), 0) AS workingCount,
-        COALESCE(SUM(CASE WHEN status = 'broken' THEN 1 ELSE 0 END), 0) AS brokenCount,
-        COUNT(*) AS totalCount,
-        MAX(created_at) AS lastReportedAt
+      `SELECT status, created_at AS lastReportedAt
       FROM reports
-      WHERE created_at >= datetime('now', '-6 hours')`
+      ORDER BY datetime(created_at) DESC, id DESC
+      LIMIT 1`
     )
-    .first<StatusRow>();
-
-  const workingCount = Number(row?.workingCount ?? 0);
-  const brokenCount = Number(row?.brokenCount ?? 0);
-  const totalCount = Number(row?.totalCount ?? 0);
-
-  let status: Status = "unknown";
-  if (brokenCount > workingCount) {
-    status = "broken";
-  } else if (workingCount > brokenCount) {
-    status = "working";
-  }
+    .first<LatestStatusRow>();
 
   return {
-    status: totalCount === 0 ? "unknown" : status,
-    workingCount,
-    brokenCount,
-    totalCount,
+    status: row?.status ?? "unknown",
     lastReportedAt: toIsoUtc(row?.lastReportedAt ?? null),
   };
 }
