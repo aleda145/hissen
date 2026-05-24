@@ -66,7 +66,7 @@ async function getCurrentStatus(db: D1Database): Promise<StatusResponse> {
 
   return {
     status: row?.status ?? "unknown",
-    lastReportedAt: toIsoUtc(row?.lastReportedAt ?? null),
+    lastReportedAt: toStockholmTime(row?.lastReportedAt ?? null),
   };
 }
 
@@ -101,7 +101,7 @@ async function hashIp(ip: string | null, secret = ""): Promise<string | null> {
     .join("");
 }
 
-function toIsoUtc(value: string | null): string | null {
+function toStockholmTime(value: string | null): string | null {
   if (!value) {
     return null;
   }
@@ -113,7 +113,21 @@ function toIsoUtc(value: string | null): string | null {
     return value;
   }
 
-  return date.toISOString().replace(".000Z", "Z");
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Stockholm",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`;
 }
 
 function renderPage(): string {
@@ -166,7 +180,7 @@ function renderPage(): string {
       }
 
       .status {
-        margin: 0 0 92px;
+        margin: 0 0 8px;
         font-size: 1.85rem;
         font-weight: 800;
         line-height: 1.12;
@@ -182,6 +196,17 @@ function renderPage(): string {
 
       .status[data-status="unknown"] {
         color: var(--unknown);
+      }
+
+      .last-reported {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.4;
+      }
+
+      .last-reported-time {
+        margin-bottom: 92px;
       }
 
       .buttons {
@@ -234,6 +259,8 @@ function renderPage(): string {
     <main>
       <h1><span>Är</span><span>Katarinahissen</span><span>trasig?</span></h1>
       <p id="status" class="status" data-status="unknown">Ingen vet just nu</p>
+      <p class="last-reported">Senast rapporterat</p>
+      <p id="last-reported" class="last-reported last-reported-time">Ingen rapport än</p>
       <p class="prompt">Stämmer det inte?</p>
       <div class="buttons">
         <button class="working-button" type="button" data-report="working">Den funkar</button>
@@ -250,6 +277,7 @@ function renderPage(): string {
       };
 
       const statusEl = document.querySelector("#status");
+      const lastReportedEl = document.querySelector("#last-reported");
       const errorEl = document.querySelector("#error");
       const buttons = [...document.querySelectorAll("[data-report]")];
 
@@ -282,6 +310,7 @@ function renderPage(): string {
       function updateStatus(data) {
         statusEl.textContent = statusText[data.status] || statusText.unknown;
         statusEl.dataset.status = data.status || "unknown";
+        lastReportedEl.textContent = data.lastReportedAt || "Ingen rapport än";
       }
 
       function setLoading(isLoading) {
