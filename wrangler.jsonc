@@ -6,8 +6,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "hissen-db",
-      "database_id": "replace-with-your-d1-database-id"
+      "database_name": "hissen",
+      "database_id": "cd99f4e4-88ba-4f45-b371-c924ec5e7e58"
     }
   ]
 }
