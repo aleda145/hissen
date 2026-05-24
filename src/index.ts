@@ -148,14 +148,13 @@ function renderPage(): string {
     <style>
       :root {
         color-scheme: light;
-        --bg: #f7efe3;
-        --card: #fffaf1;
-        --text: #261f18;
-        --muted: #6f655b;
-        --line: #ded0bd;
-        --working: #16784f;
+        --bg: #ffffff;
+        --text: #111111;
+        --muted: #666666;
+        --line: #e7e7e7;
+        --working: #147a4d;
         --broken: #b42318;
-        --unknown: #7a5c12;
+        --unknown: #6f5a00;
       }
 
       * {
@@ -165,39 +164,34 @@ function renderPage(): string {
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-        background:
-          linear-gradient(135deg, rgba(22, 120, 79, 0.12), transparent 34%),
-          linear-gradient(315deg, rgba(180, 35, 24, 0.12), transparent 35%),
-          var(--bg);
+        padding: 32px 20px;
+        background: var(--bg);
         color: var(--text);
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       main {
-        width: min(100%, 480px);
-        padding: 28px;
-        border: 2px solid var(--line);
-        border-radius: 8px;
-        background: var(--card);
-        box-shadow: 0 18px 45px rgba(38, 31, 24, 0.12);
+        width: min(100%, 420px);
+        margin: 0 auto;
         text-align: center;
       }
 
       h1 {
-        margin: 0 0 22px;
-        font-size: clamp(2rem, 9vw, 3.8rem);
-        line-height: 0.95;
+        margin: 0 0 32px;
+        font-size: 2.5rem;
+        line-height: 1;
         letter-spacing: 0;
       }
 
+      h1 span {
+        display: block;
+      }
+
       .status {
-        margin: 0;
-        font-size: clamp(1.6rem, 7vw, 2.7rem);
+        margin: 0 0 92px;
+        font-size: 1.85rem;
         font-weight: 800;
-        line-height: 1.08;
+        line-height: 1.12;
       }
 
       .status[data-status="working"] {
@@ -212,27 +206,27 @@ function renderPage(): string {
         color: var(--unknown);
       }
 
-      .meta {
-        min-height: 48px;
-        margin: 14px 0 22px;
-        color: var(--muted);
-        line-height: 1.5;
-      }
-
       .buttons {
         display: grid;
-        gap: 12px;
+        gap: 20px;
+      }
+
+      .prompt {
+        margin: 0 0 24px;
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: 700;
       }
 
       button {
         width: 100%;
-        min-height: 64px;
-        border: 0;
+        min-height: 58px;
+        border: 1px solid transparent;
         border-radius: 8px;
-        padding: 16px 18px;
+        padding: 14px 16px;
         color: white;
         font: inherit;
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         font-weight: 800;
         cursor: pointer;
       }
@@ -250,44 +244,23 @@ function renderPage(): string {
         background: var(--broken);
       }
 
-      .helper {
-        margin: 20px 0 0;
-        color: var(--muted);
-        font-size: 0.95rem;
-        line-height: 1.45;
-      }
-
       .error {
         min-height: 24px;
         margin: 14px 0 0;
         color: var(--broken);
         font-weight: 700;
       }
-
-      @media (min-width: 520px) {
-        main {
-          padding: 36px;
-        }
-
-        .buttons {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
     </style>
   </head>
   <body>
     <main>
-      <h1>Är Katarinahissen trasig?</h1>
+      <h1><span>Är</span><span>Katarinahissen</span><span>trasig?</span></h1>
       <p id="status" class="status" data-status="unknown">Ingen vet just nu</p>
-      <p class="meta">
-        <span id="last-updated">Senast rapporterad: aldrig</span><br>
-        <span id="counts">0 rapporter</span>
-      </p>
+      <p class="prompt">Stämmer det inte?</p>
       <div class="buttons">
         <button class="working-button" type="button" data-report="working">Den funkar</button>
         <button class="broken-button" type="button" data-report="broken">Den är trasig</button>
       </div>
-      <p class="helper">Statusen baseras på rapporter från de senaste 6 timmarna.</p>
       <p id="error" class="error" aria-live="polite"></p>
     </main>
 
@@ -299,8 +272,6 @@ function renderPage(): string {
       };
 
       const statusEl = document.querySelector("#status");
-      const lastUpdatedEl = document.querySelector("#last-updated");
-      const countsEl = document.querySelector("#counts");
       const errorEl = document.querySelector("#error");
       const buttons = [...document.querySelectorAll("[data-report]")];
 
@@ -333,17 +304,6 @@ function renderPage(): string {
       function updateStatus(data) {
         statusEl.textContent = statusText[data.status] || statusText.unknown;
         statusEl.dataset.status = data.status || "unknown";
-        lastUpdatedEl.textContent = data.lastReportedAt
-          ? "Senast rapporterad: " + formatDate(data.lastReportedAt)
-          : "Senast rapporterad: aldrig";
-        countsEl.textContent = data.totalCount + " rapporter (" + data.workingCount + " funkar, " + data.brokenCount + " trasig)";
-      }
-
-      function formatDate(value) {
-        return new Intl.DateTimeFormat("sv-SE", {
-          dateStyle: "short",
-          timeStyle: "short"
-        }).format(new Date(value));
       }
 
       function setLoading(isLoading) {
