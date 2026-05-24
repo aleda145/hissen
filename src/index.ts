@@ -253,6 +253,12 @@ function renderPage(): string {
         color: var(--broken);
         font-weight: 700;
       }
+
+      .thanks {
+        min-height: 24px;
+        margin: 18px 0 0;
+        font-weight: 700;
+      }
     </style>
   </head>
   <body>
@@ -266,6 +272,7 @@ function renderPage(): string {
         <button class="working-button" type="button" data-report="working">Den funkar</button>
         <button class="broken-button" type="button" data-report="broken">Den är trasig</button>
       </div>
+      <p id="thanks" class="thanks" aria-live="polite"></p>
       <p id="error" class="error" aria-live="polite"></p>
     </main>
 
@@ -278,6 +285,7 @@ function renderPage(): string {
 
       const statusEl = document.querySelector("#status");
       const lastReportedEl = document.querySelector("#last-reported");
+      const thanksEl = document.querySelector("#thanks");
       const errorEl = document.querySelector("#error");
       const buttons = [...document.querySelectorAll("[data-report]")];
 
@@ -289,6 +297,7 @@ function renderPage(): string {
 
       async function sendReport(status) {
         setLoading(true);
+        thanksEl.textContent = "";
         errorEl.textContent = "";
 
         try {
@@ -300,6 +309,7 @@ function renderPage(): string {
 
           if (!response.ok) throw new Error("Kunde inte spara rapporten");
           updateStatus(await response.json());
+          thanksEl.textContent = "Tack för din rapport!";
         } catch (error) {
           errorEl.textContent = "Något gick fel. Försök igen.";
         } finally {
