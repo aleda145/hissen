@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hissen",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-24",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hissen-db",
+      "database_id": "replace-with-your-d1-database-id"
+    }
+  ]
+}
